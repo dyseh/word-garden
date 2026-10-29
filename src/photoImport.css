@@ -1,0 +1,121 @@
+.photo-import {
+  border: 2px dashed #bccba8;
+  background: #f4f6e9;
+  padding: 18px;
+  margin: 20px 0;
+}
+.photo-title {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+.photo-title h3 {
+  font-size: 18px;
+  margin-top: 6px;
+}
+.photo-local {
+  font-size: 10px;
+  color: #426139;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.photo-preview {
+  position: relative;
+  margin-top: 16px;
+  overflow: hidden;
+  background: #ddd;
+  touch-action: none;
+  user-select: none;
+}
+.photo-preview canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: none;
+}
+.crop-overlay {
+  position: absolute;
+  border: 3px solid #355f3a;
+  box-shadow: 0 0 0 2000px #14211380;
+  pointer-events: none;
+}
+.photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+}
+.crop-controls {
+  font-size: 12px;
+}
+.crop-controls input[type="range"] {
+  padding: 0;
+  accent-color: #4a7448;
+  min-height: 36px;
+}
+.photo-import progress {
+  width: 100%;
+  margin-top: 14px;
+}
+.ocr-candidates {
+  max-height: 350px;
+  overflow: auto;
+  margin: 14px 0;
+  padding: 3px;
+}
+.ocr-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+.ocr-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: #4a7448;
+}
+.ocr-row input:not([type="checkbox"]) {
+  font-size: 16px;
+  padding: 8px;
+  min-width: 0;
+}
+.ocr-row span {
+  font-size: 10px;
+  color: #775420;
+}
+.ocr-review details {
+  font-size: 12px;
+  margin: 12px 0;
+}
+.ocr-review pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 200px;
+  overflow: auto;
+  background: #fff;
+  padding: 12px;
+}
+.photo-import summary {
+  cursor: pointer;
+  min-height: 32px;
+}
+.photo-import .checkbox-label {
+  font-size: 13px;
+}
+.photo-import .notice {
+  font-size: 12px;
+}
+@media (max-width: 400px) {
+  .photo-import {
+    padding: 12px;
+  }
+  .photo-local {
+    display: none;
+  }
+  .photo-title h3 {
+    font-size: 16px;
+  }
+}

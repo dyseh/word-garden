@@ -1,0 +1,37 @@
+.settings-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.settings-toast {
+  padding: 10px 14px;
+  border: 1px solid #bacba6;
+  background: #e9f0dd;
+  font-size: 13px;
+}
+.voice-readiness {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #496541;
+  padding: 10px 0;
+}
+.settings-fieldset .form-actions {
+  position: sticky;
+  bottom: -32px;
+  background: #fffef4;
+  padding: 16px 0;
+  border-top: 1px solid #d9dec9;
+  z-index: 2;
+}
+.natural-voice-settings progress {
+  width: 100%;
+}
+@media (max-width: 760px) {
+  .settings-fieldset .form-actions {
+    bottom: -22px;
+  }
+}

@@ -1,0 +1,76 @@
+.word-help {
+  margin: 14px 0;
+  padding: 14px 0;
+  border-top: 1px dashed #d3dcc7;
+  border-bottom: 1px dashed #d3dcc7;
+}
+.word-help-buttons {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
+}
+.word-help-buttons .button {
+  font-size: 12px;
+  padding: 10px 8px;
+  min-height: 48px;
+}
+.definition-card {
+  background: #edf3e1;
+  padding: 12px;
+  margin-top: 14px;
+  font-size: 13px;
+  border-left: 3px solid #6f914c;
+}
+.definition-card p {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.definition-card small {
+  font-size: 10px;
+}
+.word-help-edit {
+  font-size: 11px;
+}
+.word-help-dialog fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.word-help-dialog summary {
+  padding: 12px 0;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+}
+.dictionary-choices {
+  max-height: 280px;
+  overflow: auto;
+}
+.dictionary-choices article {
+  border: 1px solid #cbd7bc;
+  padding: 12px;
+  margin: 10px 0;
+}
+.dictionary-choices p {
+  font-size: 13px;
+}
+.dictionary-choices small {
+  display: block;
+  font-size: 11px;
+  margin-top: 8px;
+}
+.word-help-dialog .form-actions {
+  position: sticky;
+  bottom: -32px;
+  background: #fffef4;
+  padding: 12px 0;
+  z-index: 2;
+}
+.word-help-dialog textarea {
+  font-size: 16px;
+}
+@media (max-width: 760px) {
+  .word-help-dialog .form-actions {
+    bottom: -22px;
+  }
+}

@@ -1,0 +1,40 @@
+.garden-scene {
+  width: 100%;
+  height: 370px;
+  background: #c7e8ea;
+  overflow: hidden;
+  border-top: 2px solid #c1cfad;
+  border-bottom: 2px solid #c1cfad;
+}
+.garden-scene > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+.garden-grown {
+  animation: garden-pop 0.35s ease-out;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes garden-pop {
+  from {
+    opacity: 0.6;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 1100px) {
+  .garden-scene {
+    height: auto;
+    aspect-ratio: 640/370;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .garden-grown {
+    animation: none;
+  }
+}
