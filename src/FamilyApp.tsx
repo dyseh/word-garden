@@ -21,6 +21,7 @@ import {
   type Family,
 } from "./family";
 import { helpKey, validHelp, type ApprovedHelp } from "./dictionary";
+import { NAVIGATION_KEY, practiceKey, readSession, writeSession, recoverNavigation } from "./sessionRecovery";
 import "./family.css";
 import "./familyLayout.css";
 let writes: Promise<unknown> = Promise.resolve();
@@ -92,6 +93,11 @@ export default function FamilyApp() {
           );
         if (alive) {
           setFamily(value);
+          const navigation = recoverNavigation(readSession(NAVIGATION_KEY), value);
+          setProfileId(navigation.profileId);
+          setGardenId(navigation.gardenId);
+          setCreating(navigation.creating);
+          setShowArchived(navigation.archived);
           setSaved("Saved on this device");
         }
       } catch (e) {
@@ -109,6 +115,9 @@ export default function FamilyApp() {
       alive = false;
     };
   }, []);
+  useEffect(() => {
+    if (loaded && !fatal) writeSession(NAVIGATION_KEY, { profileId, gardenId, creating, archived });
+  }, [loaded, fatal, profileId, gardenId, creating, archived]);
   useEffect(() => {
     if (editing !== undefined) dialog.current?.showModal();
   }, [editing]);
@@ -184,6 +193,7 @@ export default function FamilyApp() {
     if (!profile) return;
     const gid = id();
     commit(addGarden(latest.current, profile.id, game, gid));
+    writeSession(practiceKey(creating ? `new-${profile.id}` : selected!.id), null);
     setCreating(false);
     setGardenId(gid);
   }
@@ -351,6 +361,7 @@ export default function FamilyApp() {
           </nav>
           <App
             key={creating ? `new-${profile.id}` : selected!.id}
+            sessionId={creating ? `new-${profile.id}` : selected!.id}
             game={selected?.game ?? demo}
             onGameChange={(game) => {
               if (selected) changeGame(selected.id, game);

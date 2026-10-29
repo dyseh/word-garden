@@ -16,6 +16,7 @@ import {
 import { PAUSE_MS, promptSegments } from "./speechPrompt";
 import { answerGame, newGame, parseWords, retryWord, validGame, type Game } from "./game";
 import { createAnswerSounds } from "./answerSounds";
+import { practiceKey, readSession, writeSession, recoverPractice } from "./sessionRecovery";
 
 type Feedback = {
   correct: boolean;
@@ -44,6 +45,7 @@ function Sprout({ small = false }: { small?: boolean }) {
 }
 
 export default function App({
+  sessionId,
   game,
   onGameChange,
   onCreateGarden,
@@ -53,6 +55,7 @@ export default function App({
   storageError,
   naturalVoice,
 }: {
+  sessionId: string;
   game: Game;
   onGameChange: (game: Game) => void;
   onCreateGarden: (game: Game) => void;
@@ -64,21 +67,26 @@ export default function App({
 }) {
   const setGame = onGameChange;
   const ready = true;
-  const [view, setView] = useState<"home" | "editor" | "play">(
-    initialEditor ? "editor" : "home",
-  );
-  const [mode, setMode] = useState<Mode>("grow");
+  const [recovered] = useState(() => recoverPractice(readSession(practiceKey(sessionId)), initialEditor));
+  const [view, setView] = useState<"home" | "editor" | "play">(recovered.view);
+  const [mode, setMode] = useState<Mode>(recovered.mode);
   const [answer, setAnswer] = useState("");
   const [answerSounds] = useState(createAnswerSounds);
-  const [soundsEnabled, setSoundsEnabled] = useState(true);
+  const [soundsEnabled, setSoundsEnabled] = useState(recovered.soundsEnabled);
   useEffect(() => () => answerSounds.dispose(), [answerSounds]);
-  const [helped, setHelped] = useState(false);
+  const [helped, setHelped] = useState(recovered.helpedWord === game.queue[0]);
   const [revealed, setRevealed] = useState(false);
-  const [studying, setStudying] = useState(false);
+  const [studying, setStudying] = useState(recovered.mode === "learn");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [error, setError] = useState("");
-  const [title, setTitle] = useState("");
-  const [list, setList] = useState("");
+  const [title, setTitle] = useState(recovered.title);
+  const [list, setList] = useState(recovered.list);
+  useEffect(() => {
+    writeSession(practiceKey(sessionId), {
+      view, mode, title, list, soundsEnabled,
+      helpedWord: !feedback && helped ? game.queue[0] ?? null : null,
+    });
+  }, [sessionId, view, mode, title, list, soundsEnabled, helped, feedback, game.queue]);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceId, setVoiceId] = useState("");
   const [voiceRate, setVoiceRate] = useState(0.9);
@@ -179,7 +187,7 @@ export default function App({
   const privacyDialog = useRef<HTMLDialogElement>(null);
   const continueButton = useRef<HTMLButtonElement>(null);
   const practicePanel = useRef<HTMLElement>(null);
-  const lastPeeked = useRef<number | null>(null);
+  const lastPeeked = useRef<number | null>(recovered.helpedWord);
   useEffect(() => {
     if (privacy) privacyDialog.current?.showModal();
   }, [privacy]);
@@ -373,6 +381,11 @@ export default function App({
     lastPeeked.current = null;
     setGame(result.game);
   }
+  function backToPracticeOptions() {
+    stopSpeech();
+    setView("home");
+    setFeedback(null);
+  }
   function next() {
     answerSounds.stop();
     resetPrompt(mode);
@@ -403,6 +416,8 @@ export default function App({
       const words = parseWords(list);
       lastPeeked.current = null;
       onCreateGarden(newGame(words, title));
+      setTitle("");
+      setList("");
       setView("home");
       setError("");
       setFeedback(null);
@@ -650,11 +665,7 @@ export default function App({
                 </span>
                 <button
                   className="button button-light button-small"
-                  onClick={() => {
-                    stopSpeech();
-                    setView("home");
-                    setFeedback(null);
-                  }}
+                  onClick={backToPracticeOptions}
                 >
                   Pause practice
                 </button>
@@ -716,6 +727,15 @@ export default function App({
                 className="panel practice-panel"
                 aria-label="Spelling practice"
               >
+                {isPlaying && (
+                  <button
+                    type="button"
+                    className="button button-light button-full"
+                    onClick={backToPracticeOptions}
+                  >
+                    <span aria-hidden="true">←</span> Back to practice options
+                  </button>
+                )}
                 <button
                   type="button"
                   className="text-button"

@@ -1,4 +1,6 @@
 import { createWorker, OEM, PSM } from "tesseract.js";
+import { extractOcrCandidates } from "./ocrWords";
+import { isEnglishWord } from "./ocrDictionary";
 self.onmessage = async (event: MessageEvent<{ url: string }>) => {
   let worker: Awaited<ReturnType<typeof createWorker>> | undefined;
   try {
@@ -28,6 +30,7 @@ self.onmessage = async (event: MessageEvent<{ url: string }>) => {
       type: "result",
       text: data.text,
       confidence: data.confidence,
+      candidates: extractOcrCandidates(data.text, isEnglishWord),
     });
   } catch (e) {
     self.postMessage({

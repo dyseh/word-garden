@@ -28,4 +28,13 @@ await copyFile(
   join(pkg("@tesseract.js-data/eng"), "4.0.0_best_int/eng.traineddata.gz"),
   join(target, "eng.traineddata.gz"),
 );
+// Retain dictionary and spell-checker attribution in the distributed app.
+for (const name of ["dictionary-en", "dictionary-en-gb", "nspell"]) {
+  const directory = dirname(require.resolve(name));
+  const license =
+    name === "nspell"
+      ? join(directory, "../license")
+      : join(directory, "license");
+  await copyFile(license, join(target, `${name}.LICENSE`));
+}
 console.log("Prepared self-hosted OCR assets.");

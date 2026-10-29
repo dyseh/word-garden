@@ -95,6 +95,8 @@ Supported files: JPG, PNG, and WebP, up to 20 MB and 40 megapixels. Images are r
 
 Printed English lists work best. Handwriting, blur, lighting, and complex columns can reduce accuracy. Crop columns separately if needed. OCR does not invent sentences or definitions.
 
+OCR results are checked against bundled US and UK English spelling dictionaries. Unrecognized tokens, digit/letter mixtures, and stray letters other than A or I are removed before review. Inflections and contractions are supported; hyphenated words are kept when every component is recognized. No spellings are automatically corrected. A misread word that is still a dictionary word can survive, and names or unusual words can be omitted—review the results and type missing words manually. The dictionary check runs locally in the OCR worker, with no third-party requests. Dictionary and spell-checker licenses are distributed under `public/ocr/`.
+
 The image stays in memory. Cropped image URLs are released on completion, cancellation, removal, or leaving the editor. Photos are neither uploaded nor saved in IndexedDB. OCR files are served from the app's own origin.
 
 ### Switch between children
@@ -141,6 +143,12 @@ Content comes from:
 For missing help, a grown-up can write it or explicitly allow a one-word lookup using [Free Dictionary API](https://dictionaryapi.dev/). The service receives the word and the device's IP address, not a photo or full list. It is a general dictionary, not a children's dictionary. Results stay in the adult review screen until selected, edited, and saved. Wiktionary source links and returned license credit are retained.
 
 Opening the word-help editor reveals the spelling and marks the current attempt as assisted. The “grown-up” label is not an authentication gate; adult supervision is still needed.
+
+## Reload recovery
+
+The current browser tab remembers your selected gardener, open garden, practice mode, answer-sound setting, and typed word-list draft across page reloads. Practice restarts at the current queued word; speech waits for you to press Hear again. Switching gardeners explicitly returns to the picker. Recovery is scoped to the tab and is best-effort when browser storage is unavailable.
+
+Photos, crop selections, OCR work in progress, and partial spelling answers are not restored. Reselect the photo after an interrupted import. Recovery is not a backup; saved gardens and progress still use IndexedDB.
 
 ## Data, migration, and backups
 

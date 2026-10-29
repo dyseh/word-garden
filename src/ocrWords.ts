@@ -30,7 +30,10 @@ export interface OcrCandidate {
  * @param text - Raw OCR text from a spelling list
  * @returns Array of OCR candidates with selection and review flags
  */
-export function extractOcrCandidates(text: string): OcrCandidate[] {
+export function extractOcrCandidates(
+  text: string,
+  isWord: (word: string) => boolean,
+): OcrCandidate[] {
   if (!text || text.trim().length === 0) {
     return [];
   }
@@ -73,43 +76,18 @@ export function extractOcrCandidates(text: string): OcrCandidate[] {
         continue;
       }
 
-      // Determine if token is valid English (letters, apostrophes, hyphens, or alphanumeric)
-      const isValidEnglish = /^[a-z]+(?:[-'][a-z]+)*$/i.test(token);
-      const isAlphanumeric = /^[a-z0-9]+(?:[-'][a-z0-9]+)*$/i.test(token);
-
-      // Deduplicate case-insensitive
       const lowerToken = token.toLowerCase();
-
-      if (candidates.has(lowerToken)) {
-        continue; // Already processed
-      }
-
-      let selected = false;
-      let needsReview = false;
-
-      if (isValidEnglish) {
-        // Check if it's a common worksheet heading
-        if (COMMON_WORKSHEET_HEADINGS.has(lowerToken)) {
-          selected = false;
-          needsReview = true;
-        } else {
-          // Valid English word with <= 40 chars: select true
-          if (token.length <= 40) {
-            selected = true;
-            needsReview = false;
-          } else {
-            selected = false;
-            needsReview = true;
-          }
-        }
-      } else if (isAlphanumeric) {
-        // Invalid alphanumeric tokens (contains numbers): preserve, deselect, mark for review
-        selected = false;
-        needsReview = true;
-      } else {
-        // Other invalid tokens: skip entirely
+      if (
+        candidates.has(lowerToken) ||
+        token.length > 40 ||
+        !/^[a-z]+(?:[-'][a-z]+)*$/i.test(token) ||
+        !isWord(lowerToken)
+      )
         continue;
-      }
+
+      // Headings are real words, but should not be selected automatically.
+      const needsReview = COMMON_WORKSHEET_HEADINGS.has(lowerToken);
+      const selected = !needsReview;
 
       const candidate = {
         text: token,

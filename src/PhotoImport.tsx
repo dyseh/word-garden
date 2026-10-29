@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  extractOcrCandidates,
   MAX_OCR_CANDIDATES,
   type OcrCandidate,
 } from "./ocrWords";
@@ -175,7 +174,7 @@ export default function PhotoImport({
         type: "module",
       });
       worker.current = w;
-      const result = await new Promise<{ text: string; confidence: number }>(
+      const result = await new Promise<{ text: string; confidence: number; candidates: OcrCandidate[] }>(
         (resolve, reject) => {
           pendingReject.current = reject;
           timer.current = setTimeout(
@@ -212,8 +211,8 @@ export default function PhotoImport({
       if (id !== generation.current) return;
       setRaw(result.text);
       setConfidence(result.confidence);
-      setCandidates(extractOcrCandidates(result.text));
-      setStatus("Review every spelling before adding it.");
+      setCandidates(result.candidates);
+      setStatus("Unrecognized words removed. Review the remaining spellings before adding them.");
     } catch (e) {
       if (id === generation.current)
         setError(
@@ -430,8 +429,10 @@ export default function PhotoImport({
         <div className="ocr-review">
           <h3>Check your words</h3>
           <p className="field-help">
-            The computer sometimes gets letters wrong. Edit any spellings that
-            need fixing and uncheck headings. No automatic fixes were made.
+            Only words recognized by the English dictionary are shown. Check for
+            wrong words and uncheck headings. No spellings were automatically
+            corrected. Names and unusual words may be missing; type those into
+            your word list yourself.
           </p>
           {confidence < 70 && (
             <p className="notice">
@@ -446,7 +447,7 @@ export default function PhotoImport({
             </p>
           )}
           {!candidates.length && (
-            <p>No words found. Try a clearer photo or a tighter crop.</p>
+            <p>No dictionary words found. Try a clearer photo, crop more tightly, or type your words into the list.</p>
           )}
           <div className="ocr-candidates">
             {candidates.map((candidate, i) => (

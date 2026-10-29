@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { extractOcrCandidates, MAX_OCR_CANDIDATES } from "./ocrWords";
+import {
+  extractOcrCandidates as extract,
+  MAX_OCR_CANDIDATES,
+} from "./ocrWords";
+import { isEnglishWord } from "./ocrDictionary";
+const extractOcrCandidates = (text: string) => extract(text, isEnglishWord);
 
 describe("extractOcrCandidates", () => {
   it("keeps single-letter words and curly apostrophes", () =>
@@ -85,12 +90,10 @@ describe("extractOcrCandidates", () => {
     expect(result[0].text).toBe("Apple"); // Preserves first occurrence
   });
 
-  it('should handle suspicious alphanumeric tokens like "1eaf"', () => {
-    const result = extractOcrCandidates("leaf 1eaf 1emon");
-    const invalidTokens = result.filter((c) => c.needsReview && !c.selected);
-    expect(invalidTokens.some((c) => c.text === "1eaf")).toBe(true);
-    expect(invalidTokens.some((c) => c.text === "1emon")).toBe(true);
-    expect(result.some((c) => c.text === "leaf" && c.selected)).toBe(true);
+  it("removes alphanumeric mistakes rather than showing them for review", () => {
+    expect(extractOcrCandidates("leaf 1eaf 1emon").map((c) => c.text)).toEqual([
+      "leaf",
+    ]);
   });
 
   it("should drop pure numbering", () => {
@@ -110,18 +113,22 @@ describe("extractOcrCandidates", () => {
   it("should respect 40-character length limit", () => {
     const longWord = "a".repeat(40);
     const veryLongWord = "a".repeat(41);
-    const result = extractOcrCandidates(`${longWord} ${veryLongWord}`);
+    const result = extract(`${longWord} ${veryLongWord}`, () => true);
     const long40 = result.find((c) => c.text === longWord);
     const longOver40 = result.find((c) => c.text === veryLongWord);
     expect(long40?.selected).toBe(true);
     expect(long40?.needsReview).toBe(false);
-    expect(longOver40?.selected).toBe(false);
-    expect(longOver40?.needsReview).toBe(true);
+    expect(longOver40).toBeUndefined();
   });
 
   it("should enforce MAX_OCR_CANDIDATES safety cap", () => {
-    const tokens = Array.from({ length: 300 }, (_, i) => `word${i}`).join(" ");
-    const result = extractOcrCandidates(tokens);
+    // Isolate the cap from dictionary vocabulary with distinct letters-only tokens.
+    const tokens = Array.from(
+      { length: 300 },
+      (_, i) =>
+        `word${String.fromCharCode(97 + Math.floor(i / 26), 97 + (i % 26))}`,
+    ).join(" ");
+    const result = extract(tokens, () => true);
     expect(result.length).toBeLessThanOrEqual(MAX_OCR_CANDIDATES);
     expect(result.length).toBe(MAX_OCR_CANDIDATES);
   });

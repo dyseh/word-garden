@@ -80,4 +80,24 @@ Reviewed homepage, editor, practice, feedback, completion, photo review, word he
 - Real Chrome at 390px: created profile/list through the UI; observed two oscillator starts for a mistake and three for a correct retry; verified keyboard Enter-to-retry, assisted scoring, mute, next-word progression, complete harvest, no horizontal overflow and no page errors.
 - Evidence: `verification/answer-feedback/` contains mobile screenshots, network HAR and browser trace. Human listening acceptance and device-speech/Kokoro retry playback remain unverified in this pass.
 
+## Dictionary-filtered OCR (2026-10-29)
+
+- OCR worker now filters candidates through local nspell with US and UK English dictionaries before applying the 200-candidate cap. Alphanumeric noise, unrecognized words and stray single letters are removed; A/I, contractions and inflections remain supported. Hyphenated words require every component to be recognized.
+- 340 unit tests and the production build passed. Dictionary data stays in the OCR worker bundle, not the main app bundle; license notices are copied into `public/ocr/`.
+- Real production-preview Chrome recognition of a printed fixture read `apple, qzxv, leaf, applle, colour, children, can't, running`. Review showed only the six real words. Confirmation/appending preserved existing typed `seed`. No external requests, page errors, or horizontal overflow at 390px.
+- Evidence: `verification/ocr-word-filter/` contains the worksheet fixture, filtered review screenshot, raw/result JSON, HAR and trace.
+- This verifies filtering, not broad photo-recognition accuracy. Dictionary-valid misreads can survive, and names/unusual vocabulary can be omitted. Manual entry and original detected text remain available. No user-provided failing photo was available for comparison.
+
+## First-use OCR development reload (2026-10-29)
+
+- The live development log showed Vite discovering `tesseract.js` and `nspell` on first OCR use, then reloading the page. Since the selected gardener and draft are in React state, this returned the user to the picker.
+- Added both worker-only dependencies to `optimizeDeps.include` so Vite prepares them at startup.
+- Verified first photo recognition on a separate fresh-cache development server: zero main-frame navigations, six filtered words shown, gardener/editor retained, garden name and existing typed words preserved, and confirmed append succeeded. No page errors; 340 tests and TypeScript checks passed. Screenshot: `verification/ocr-first-use-no-reload.png`.
+
+## Tab-local reload recovery (2026-10-29)
+
+- Added validated sessionStorage recovery for selected gardener/garden, new-list editor, practice mode, typed title/list, answer-sound preference and assisted-answer state. Restore navigation only after loading and validating the family; reject deleted or foreign-owned garden IDs. Blocked/full session storage is nonfatal.
+- 356 tests and production build passed. Chrome reload checks passed for an unfinished draft, Look & remember, earned progress/current queued word, peek-assisted scoring, explicit Switch gardener navigation, cleared planted drafts, and an independently opened tab. No page errors. Screenshot: `verification/reload-recovery.png`.
+- Photos/OCR state and partial spelling answers are deliberately not persisted. Speech requires a fresh Hear again gesture; no automatic audio restart. Tab recovery does not make concurrent IndexedDB edits safe.
+
 Not yet verified: Safari/iPad/Android, screen-reader audit, human child usability, pronunciation, storage failure injection, offline operation, public privacy/legal readiness. No public deployment performed.
