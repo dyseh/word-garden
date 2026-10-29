@@ -14,13 +14,15 @@ import {
   type VoiceSettings,
 } from "./voiceSettings";
 import { PAUSE_MS, promptSegments } from "./speechPrompt";
-import { answerGame, newGame, parseWords, validGame, type Game } from "./game";
+import { answerGame, newGame, parseWords, retryWord, validGame, type Game } from "./game";
+import { createAnswerSounds } from "./answerSounds";
 
 type Feedback = {
   correct: boolean;
   earned: boolean;
   word: string;
   answer: string;
+  wordIndex: number;
 };
 type Mode = "grow" | "learn";
 function Sprout({ small = false }: { small?: boolean }) {
@@ -67,6 +69,9 @@ export default function App({
   );
   const [mode, setMode] = useState<Mode>("grow");
   const [answer, setAnswer] = useState("");
+  const [answerSounds] = useState(createAnswerSounds);
+  const [soundsEnabled, setSoundsEnabled] = useState(true);
+  useEffect(() => () => answerSounds.dispose(), [answerSounds]);
   const [helped, setHelped] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [studying, setStudying] = useState(false);
@@ -237,6 +242,7 @@ export default function App({
   );
 
   function stopSpeech() {
+    answerSounds.stop();
     naturalVoice.cancel();
     speechGeneration.current++;
     if (speechTimer.current) clearTimeout(speechTimer.current);
@@ -356,7 +362,9 @@ export default function App({
       return;
     stopSpeech();
     const result = answerGame(game, answer, helped);
+    if (soundsEnabled) void answerSounds.play(result.correct);
     setFeedback({
+      wordIndex: game.queue[0],
       correct: result.correct,
       earned: result.earned,
       word: word.text,
@@ -366,8 +374,21 @@ export default function App({
     setGame(result.game);
   }
   function next() {
+    answerSounds.stop();
     resetPrompt(mode);
     if (!complete && mode === "grow") sayWord();
+  }
+  function tryAgain() {
+    if (!feedback || feedback.correct) return;
+    const missedWord = game.words[feedback.wordIndex];
+    stopSpeech();
+    setGame(retryWord(game, feedback.wordIndex));
+    resetPrompt(mode);
+    // The correction has been shown: keep the existing assisted-answer rule.
+    lastPeeked.current = feedback.wordIndex;
+    setHelped(true);
+    setStudying(false);
+    if (mode === "grow") sayWord(missedWord);
   }
   function edit() {
     stopSpeech();
@@ -695,10 +716,21 @@ export default function App({
                 className="panel practice-panel"
                 aria-label="Spelling practice"
               >
+                <button
+                  type="button"
+                  className="text-button"
+                  aria-pressed={soundsEnabled}
+                  onClick={() => {
+                    answerSounds.stop();
+                    setSoundsEnabled(!soundsEnabled);
+                  }}
+                >
+                  Answer sounds: {soundsEnabled ? "on" : "off"}
+                </button>
                 {feedback ? (
                   <div className="feedback" aria-live="polite">
                     <span className="pixel-label">
-                      {feedback.earned ? "CORRECT" : "TRY AGAIN"}
+                      {feedback.correct ? "CORRECT" : "TRY AGAIN"}
                     </span>
                     <div
                       className={`result-icon ${feedback.earned ? "success" : ""}`}
@@ -718,7 +750,7 @@ export default function App({
                         ? "Your plant grew!"
                         : feedback.correct
                           ? "You saw the spelling. Try this word again without looking."
-                          : "Check these letters. You’ll try this word again."}
+                          : "Check these letters, then try again. You can also move to the next word."}
                     </p>
                     {!feedback.correct && (
                       <p className="previous-answer">
@@ -772,9 +804,18 @@ export default function App({
                         </ul>
                       </>
                     )}
+                    {!feedback.correct && (
+                      <button
+                        className="button button-primary button-full"
+                        ref={continueButton}
+                        onClick={tryAgain}
+                      >
+                        Try again <span aria-hidden="true">↻</span>
+                      </button>
+                    )}
                     <button
-                      className="button button-primary button-full"
-                      ref={continueButton}
+                      className={`button ${feedback.correct ? "button-primary" : "button-light"} button-full`}
+                      ref={feedback.correct ? continueButton : undefined}
                       onClick={next}
                     >
                       {complete ? "See my harvest" : "Next word"}{" "}

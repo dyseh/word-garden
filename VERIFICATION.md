@@ -72,4 +72,12 @@ Reviewed homepage, editor, practice, feedback, completion, photo review, word he
 - Build, 275 tests and dependency audit passed. Evidence: `../rovodev-captures/20261028-word-garden-family/`.
 - Concurrent-tab edits remain unsupported; use one active app tab. Shared neural model survives profile switches by design; new multi-profile Kokoro playback not separately exercised in this pass. Human visual acceptance remains pending.
 
+## Answer sounds and immediate retry (2026-10-29)
+
+- Correct answers play a short ascending sine-wave chime; incorrect answers play a quieter descending tone. Browser-generated audio needs no downloads. Answer sounds can be toggled for the current garden session.
+- Try again returns the missed word to the front without duplicating it or changing attempts/rewards. The correction is hidden for the retry, which is assisted because the spelling was just shown. Next word remains available.
+- Production build and 308 unit tests passed, including audio failure/cancellation/cleanup and retry queue invariants.
+- Real Chrome at 390px: created profile/list through the UI; observed two oscillator starts for a mistake and three for a correct retry; verified keyboard Enter-to-retry, assisted scoring, mute, next-word progression, complete harvest, no horizontal overflow and no page errors.
+- Evidence: `verification/answer-feedback/` contains mobile screenshots, network HAR and browser trace. Human listening acceptance and device-speech/Kokoro retry playback remain unverified in this pass.
+
 Not yet verified: Safari/iPad/Android, screen-reader audit, human child usability, pronunciation, storage failure injection, offline operation, public privacy/legal readiness. No public deployment performed.

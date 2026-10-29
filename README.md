@@ -51,7 +51,8 @@ ipconfig getifaddr en0
 | Listen & spell | Hear the word, type it, and check the spelling. |
 | Look & remember | See the word, hide it, then type it from memory. |
 | Garden rewards | Correct answers without a peek grow plants. Finish the list to complete the garden. |
-| Corrections | Letter tiles show missing, extra, and incorrect letters. Missed or assisted words return later in the round. |
+| Corrections | Letter tiles show missing, extra, and incorrect letters. Choose Try again to repeat a missed word immediately, or Next word to revisit it later. Immediate retries after seeing the correction count as assisted practice. |
+| Answer sounds | Correct spellings play a short rising chime; mistakes play a softer descending tone. Toggle Answer sounds in the practice panel (for the current garden session). Tones are generated locally with no audio downloads. |
 | Photo import | Crop, rotate, recognize printed words locally, then edit and confirm them. |
 | Word clues | Hear an example sentence or hear/read a definition. |
 | Speech | Device voices or optional on-device Kokoro neural speech. |

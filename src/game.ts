@@ -72,6 +72,12 @@ export function answerGame(
     },
   };
 }
+/** Bring a missed word back without counting another attempt or changing rewards. */
+export function retryWord(game: Game, index: number): Game {
+  if (!game.queue.includes(index) || game.queue[0] === index) return game;
+  return { ...game, queue: [index, ...game.queue.filter((id) => id !== index)] };
+}
+
 export function validGame(value: unknown): value is Game {
   if (!value || typeof value !== "object") return false;
   const g = value as Game;
